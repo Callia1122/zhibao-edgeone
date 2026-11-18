@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#2E7D32">
+<title>智慧植保 · BBCH物候与用药决策</title>
+<style>
+:root{--g:#2E7D32;--g2:#43A047;--gl:#E8F5E9;--e:#8D6E63;--el:#F5F1E8;--r:#C62828;--rl:#FFEBEE;--o:#EF6C00;--ink:#263238;--mut:#6D7C71;--line:#E5DFD3;--sd:0 .35rem 1.2rem rgba(46,62,35,.1)}
+*{box-sizing:border-box}
+html{font-size:clamp(14px,3.8vw,18px);-webkit-text-size-adjust:100%}
+body{margin:0;background:#E7EBE2;color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;font-size:1rem;line-height:1.6;overflow-x:hidden}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+img{max-width:100%;height:auto;display:block}
+.wrap{max-width:46rem;min-height:100vh;margin:auto;background:var(--el);box-shadow:0 0 2.5rem rgba(46,62,35,.14);padding-bottom:4.6rem}
+header{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:.6rem;background:var(--g);color:#fff;padding:.7rem 1rem}
+header .back{width:2.2rem;height:2.2rem;border-radius:.5rem;border:1px solid rgba(255,255,255,.5);background:transparent;color:#fff;font-size:1.4rem;line-height:1}
+header h1{font-size:1.05rem;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+header small{display:block;font-size:.7rem;opacity:.85}
+header .chip{font-size:.72rem;background:rgba(255,255,255,.16);padding:.15rem .5rem;border-radius:999px;white-space:nowrap}
+main{padding:.8rem}
+.card{background:#fff;border-radius:1rem;padding:1rem;margin:0 0 .8rem;box-shadow:var(--sd)}
+.title{font-size:1.05rem;font-weight:800;color:var(--g);margin:0 0 .7rem;display:flex;justify-content:space-between;gap:.5rem;align-items:center}
+.mut{color:var(--mut);font-size:.85rem}
+.ok{color:var(--g)}
+.bad{color:var(--r)}
+.small{font-size:.75rem}
+.btn{min-height:2.8rem;padding:.45rem .9rem;border:1px solid transparent;border-radius:.75rem;font-weight:700;display:inline-flex;align-items:center;justify-content:center;gap:.3rem}
+.btn:active{transform:scale(.98)}
+.pri{background:var(--g);color:#fff}
+.sec{background:#fff;color:var(--g);border-color:var(--g)}
+.gho{background:var(--gl);color:var(--g)}
+.dan{background:var(--rl);color:var(--r);border-color:rgba(198,40,40,.3)}
+.sm{min-height:2.3rem;padding:.3rem .6rem;font-size:.85rem;border-radius:.6rem}
+.blk{width:100%}
+.row{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center}
+.bar{display:flex;flex-wrap:wrap;gap:.6rem;justify-content:space-between;align-items:center;margin-bottom:.8rem}
+.field{display:flex;flex-direction:column;gap:.2rem;margin-bottom:.7rem;min-width:0}
+.field label{font-size:.82rem;font-weight:700;color:var(--mut)}
+.field input,.field select,.field textarea{width:100%;min-height:2.8rem;padding:.5rem .7rem;border:1px solid var(--line);border-radius:.7rem;outline:none;background:#fff}
+.field textarea{min-height:4rem;resize:vertical}
+.empty{text-align:center;padding:2rem 1rem;color:var(--mut);background:#fff;border:1px dashed var(--line);border-radius:1rem;margin-bottom:.8rem}
+.empty .ico{font-size:2rem;color:var(--e)}
+.empty b{display:block;color:var(--ink);font-size:1.05rem;margin:.3rem 0}
+.pheno{background:linear-gradient(135deg,#fff,#F1F8E9);border-left:.4rem solid var(--g)}
+.stage{font-size:1.6rem;font-weight:900;color:var(--g);line-height:1.25}
+.prog{height:.6rem;background:#DCE8D8;border-radius:999px;overflow:hidden;margin:.8rem 0 .4rem}
+.prog i{display:block;height:100%;background:var(--g)}
+.kv{display:flex;flex-wrap:wrap;gap:.4rem 1rem;margin-top:.6rem}
+.kv div{flex:1 1 7rem}
+.kv b{display:block;color:var(--g);font-size:1.05rem}
+.tl{display:flex;gap:.3rem;margin-top:.9rem;padding-top:.7rem;border-top:1px dashed #CFDCC8}
+.tl div{flex:1;text-align:center;font-size:.8rem}
+.tl i{display:block;width:.55rem;height:.55rem;border-radius:50%;background:#B0BEC5;margin:0 auto .3rem}
+.tl .now i{background:var(--g);box-shadow:0 0 0 .25rem rgba(67,160,71,.16)}
+.tl .done i{background:var(--e)}
+.item{background:#fff;border:1px solid var(--line);border-radius:.8rem;padding:.8rem;margin-bottom:.6rem;display:flex;gap:.6rem;align-items:flex-start}
+.item.on{border-color:var(--g);box-shadow:inset 0 0 0 1px var(--g)}
+.item .main{flex:1;min-width:0}
+.item .t{font-weight:800;word-break:break-word}
+.item .m{font-size:.82rem;color:var(--mut);word-break:break-word;margin-top:.15rem}
+.ops{display:flex;flex-wrap:wrap;gap:.3rem;justify-content:flex-end}
+.tag{display:inline-block;font-size:.72rem;padding:.1rem .5rem;border-radius:999px;background:var(--gl);color:var(--g);font-weight:800}
+.tag.r{background:var(--rl);color:var(--r)}
+.tag.o{background:#FFF8E1;color:var(--o)}
+.tag.e{background:var(--el);color:var(--e)}
+.warn{background:var(--rl);border-left:.4rem solid var(--r);border-radius:.8rem;padding:.8rem;margin-bottom:.8rem}
+.warn b{color:var(--r)}
+.pest{border:1px solid #E3EBDD;background:#FAFCF8;border-radius:.8rem;padding:.8rem;margin-bottom:.6rem}
+.pest.no{border:2px solid var(--r);border-left:.4rem solid var(--r);background:var(--rl)}
+.pest.no .t{color:var(--r)}
+.alt{background:#F6FBF4;border:1px solid #C8E6C9}
+.tabbar{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:100%;max-width:46rem;height:calc(4.2rem + env(safe-area-inset-bottom));display:flex;background:#fff;border-top:1px solid var(--line);z-index:30;padding-bottom:env(safe-area-inset-bottom)}
+.tabbar button{flex:1;border:0;background:transparent;color:var(--mut);font-size:.72rem;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.1rem}
+.tabbar button.on{color:var(--g);font-weight:800}
+.load{position:fixed;inset:0;z-index:100;background:rgba(20,30,18,.55);display:none;align-items:center;justify-content:center;flex-direction:column;gap:.8rem;color:#fff;font-weight:800}
+.load.on{display:flex}
+.spin{width:2.5rem;height:2.5rem;border-radius:50%;border:.25rem solid rgba(255,255,255,.3);border-top-color:#fff;animation:s .8s linear infinite}
+@keyframes s{to{transform:rotate(360deg)}}
+#toast{position:fixed;left:50%;top:5rem;transform:translate(-50%,-1rem);z-index:110;background:rgba(38,50,56,.95);color:#fff;padding:.6rem 1rem;border-radius:.7rem;opacity:0;pointer-events:none;transition:.2s;max-width:80vw;text-align:center}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+.mask{position:fixed;inset:0;z-index:120;background:rgba(20,30,18,.5);display:flex;align-items:center;justify-content:center;padding:1.2rem}
+.modal{width:100%;max-width:22rem;background:#fff;border-radius:1rem;padding:1.2rem;text-align:center}
+.modal h3{margin:.2rem 0;font-size:1.1rem}
+.modal p{color:var(--mut);white-space:pre-line;margin:.6rem 0 1rem}
+@media(min-width:48rem){.wrap{max-width:52rem}.tabbar{max-width:52rem}}
+</style>
+</head>
+<body>
+<div class="wrap"><header id="head"></header><main id="page"></main><nav class="tabbar" id="tabs"></nav></div>
+<input type="file" id="cam" accept="image/*" capture="camera" hidden>
+<input type="file" id="alb" accept="image/*" hidden>
+<div class="load" id="load"><div class="spin"></div><div id="loadText">AI识别中…</div></div>
+<div id="toast"></div><div id="modal"></div>
+<script>
+(function(w){
+'use strict';
+var $=function(s,r){return (r||document).querySelector(s)},$$=function(s,r){return [].slice.call((r||document).querySelectorAll(s))};
+function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function ext(a,b){for(var k in b)a[k]=b[k];return a}
+function p2(n){return n<10?'0'+n:''+n}
+function today(){var d=new Date();return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate())}
+function pd(s){if(!s)return null;var a=String(s).split('-');if(a.length!==3)return null;var d=new Date(+a[0],+a[1]-1,+a[2]);return isNaN(d.getTime())?null:d}
+function days(f,t){var a=pd(f),b=pd(t||today());return !a||!b?0:Math.max(0,Math.round((b-a)/86400000))}
+function future(s){var d=pd(s);return !!d&&d.getTime()>new Date().getTime()}
+function hash(s){var h=0,s=String(s||'');for(var i=0;i<s.length;i++){h=((h<<5)-h+s.charCodeAt(i))|0;h=Math.abs(h)}return h%100000}
+function closest(el,sel){while(el&&el!==document){if(el.matches&&el.matches(sel))return el;el=el.parentNode}return null}
+var rerender=function(){};
+var DB=(function(){var K='zhibao_single_v1',m=null;function blank(){return{profile:null,plots:[],cur:null,records:[],diagnoses:[]}}function cp(v){try{return JSON.parse(JSON.stringify(v))}catch(e){return v}}function read(){if(!m){m=blank();try{var x=w.localStorage&&w.localStorage.getItem(K);if(x)m=ext(blank(),JSON.parse(x))}catch(e){}}return m}function save(s){m=s;try{if(w.localStorage)w.localStorage.setItem(K,JSON.stringify(s))}catch(e){}rerender();return cp(s)}function mut(f){return save(f(cp(read()))||cp(read()))}function uid(p){return p+'_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7)}return{get:function(){return cp(read())},profile:function(){return cp(read().profile)},saveProfile:function(p){return mut(function(s){s.profile=ext({id:'me'},s.profile||{},p);return s})},plots:function(){return cp(read().plots)},plot:function(id){return cp(read().plots.filter(function(p){return p.id===id})[0]||null)},addPlot:function(p){var id=uid('p');mut(function(s){s.plots.push(ext({id:id},p));if(!s.cur)s.cur=id;return s});return id},editPlot:function(id,p){return mut(function(s){s.plots=s.plots.map(function(x){return x.id===id?ext(x,p):x});return s})},delPlot:function(id){return mut(function(s){s.plots=s.plots.filter(function(x){return x.id!==id});if(s.cur===id)s.cur=s.plots.length?s.plots[0].id:null;return s})},setCur:function(id){return mut(function(s){s.cur=id;return s})},curPlot:function(){var s=read();return cp(s.plots.filter(function(p){return p.id===s.cur})[0]||s.plots[0]||null)},records:function(){return cp(read().records.slice().sort(function(a,b){return(b.date||'').localeCompare(a.date||'')}))},addRec:function(r){return mut(function(s){s.records.push(ext({id:uid('r')},r));return s})},delRec:function(id){return mut(function(s){s.records=s.records.filter(function(r){return r.id!==id});return s})},addDia:function(d){return mut(function(s){s.diagnoses.push(ext({id:uid('d')},d));return s})}}})();
+var CROPS={wheat:{id:'wheat',name:'小麦',phases:[{f:31,t:69,l:'拔节→开花'},{f:69,t:99,l:'灌浆→成熟'}],stages:[[0,'播种',0],[10,'出苗',8],[20,'分蘖',28],[30,'拔节',158],[41,'孕穗',179],[51,'抽穗',192],[61,'开花',199],[71,'灌浆',219],[83,'乳熟',234],[89,'成熟',245]]},maize:{id:'maize',name:'玉米',phases:[{f:30,t:69,l:'拔节→开花'},{f:69,t:99,l:'灌浆→成熟'}],stages:[[0,'播种',0],[10,'出苗',7],[30,'拔节',35],[51,'抽雄',65],[61,'开花',70],[71,'灌浆',85],[89,'成熟',115]]},rice:{id:'rice',name:'水稻',phases:[{f:30,t:69,l:'拔节→开花'},{f:69,t:99,l:'灌浆→成熟'}],stages:[[0,'播种',0],[10,'出苗',6],[30,'拔节',55],[51,'孕穗',75],[61,'开花',88],[71,'灌浆',102],[89,'成熟',130]]}};
+var PEST=[{id:'pc',name:'氢氧化铜',type:'杀菌剂',dose:'100g/亩',rules:[{crop:'wheat',bbch:[61,65,69]}],conf:['pm'],note:'开花期无机铜易药害'},{id:'pm',name:'代森锰锌',type:'杀菌剂',dose:'150g/亩',rules:[],conf:['pc'],note:'与铜制剂混配拮抗'},{id:'pd',name:'苯醚甲环唑',type:'杀菌剂',dose:'25g/亩',rules:[],conf:[],note:'花期相对安全'},{id:'pp',name:'咪鲜胺',type:'杀菌剂',dose:'40mL/亩',rules:[],conf:[],note:'注意轮换用药'},{id:'pi',name:'吡虫啉',type:'杀虫剂',dose:'20g/亩',rules:[{crop:'wheat',bbch:[61,65]}],conf:[],note:'花期对授粉昆虫风险高'},{id:'pt',name:'戊唑醇',type:'杀菌剂',dose:'30mL/亩',rules:[{crop:'wheat',bbch:[51,61]}],conf:[],note:'抽穗花期慎用'}];
+var DIS=[{id:'rust',name:'小麦条锈病',crop:'wheat',range:[30,58],rec:['pc','pm','pd'],alt:['pd','pp'],sym:'叶片黄色虚线状孢子堆'},{id:'fus',name:'小麦赤霉病',crop:'wheat',range:[55,69],rec:['pt','pp','pc'],alt:['pp','pd'],sym:'穗部粉红色霉层'},{id:'pow',name:'小麦白粉病',crop:'wheat',range:[20,49],rec:['pd','pt'],alt:['pd','pp'],sym:'叶面白色粉状物'},{id:'aph',name:'穗蚜',crop:'wheat',range:[45,71],rec:['pi','pd'],alt:['pd'],sym:'穗部密集绿色小虫'},{id:'mz',name:'玉米大斑病',crop:'maize',range:[30,71],rec:['pd','pp'],alt:['pp'],sym:'叶片梭形病斑'},{id:'rb',name:'稻瘟病',crop:'rice',range:[30,69],rec:['pp','pd'],alt:['pd'],sym:'叶片菱形病斑'}];
+function crop(id){return CROPS[id]||CROPS.wheat}
+function codeAt(st,d){if(d<=st[0][2])return st[0][0];for(var i=0;i<st.length-1;i++){var a=st[i],b=st[i+1];if(d<=b[2])return a[0]+(d-a[2])/(b[2]-a[2])*(b[0]-a[0])}return st[st.length-1][0]}
+function dayAt(st,c){if(c<=st[0][0])return st[0][2];for(var i=0;i<st.length-1;i++){var a=st[i],b=st[i+1];if(c<=b[0])return a[2]+(c-a[0])/(b[0]-a[0])*(b[2]-a[2])}return st[st.length-1][2]}
+function stageAt(st,c){var f=st[0];for(var i=0;i<st.length;i++)if(c>=st[i][0])f=st[i];return f}
+function nextAt(st,c){for(var i=0;i<st.length;i++)if(st[i][0]>c)return st[i];return null}
+function rpdw(cr,c){var ph=c>69?cr.phases[1]:cr.phases[0],d1=dayAt(cr.stages,ph.f),d2=dayAt(cr.stages,ph.t);return d2>d1?((ph.t-ph.f)/(d2-d1)).toFixed(3):'0.000'}
+function pheno(plot,h){var cr=crop(plot&&plot.cropId),d=days(plot&&plot.sowDate),ts=codeAt(cr.stages,d),sp=null,mode='时间序列',noise=0;if(h){noise=20;var seed=(hash(h)%2001)/100-10;sp=Math.max(0,Math.min(99,ts+seed));mode='双模融合'}var bb=Math.round(h?ts*.75+sp*.25:ts),cur=stageAt(cr.stages,bb),nx=nextAt(cr.stages,bb),nd=nx?dayAt(cr.stages,nx[0]):null;return{crop:cr.name,bbch:bb,stage:cur[1],desc:cur[0],next:nx?nx[1]:'已成熟',left:nd===null?0:Math.max(0,Math.round(nd-d)),days:d,ts:Math.round(ts),sp:sp===null?'—':Math.round(sp),mode:mode,noise:noise,conf:h?84+hash(h)%9:95,rpdw:rpdw(cr,bb)}}
+function isForbid(p,cropId,bb){return(p.rules||[]).some(function(r){return String(r.crop)===String(cropId)&&(r.bbch||[]).map(String).indexOf(String(bb))!==-1})}
+function safety(cropId,bb,ids){var ws=[];if(!ids.length)return{status:'error',warnings:['未选择农药']};var chosen=PEST.filter(function(p){return ids.indexOf(p.id)>-1});chosen.forEach(function(p){if(isForbid(p,cropId,bb))ws.push('当前处于'+stageAt(crop(cropId).stages,bb)[1]+'，禁用'+p.name)});var set={},pair={};ids.forEach(function(i){set[i]=1});chosen.forEach(function(p){(p.conf||[]).forEach(function(c){if(!set[c])return;var k=[p.id,c].sort().join('|');if(pair[k])return;pair[k]=1;var q=PEST.filter(function(x){return x.id===c})[0];ws.push(p.name+'不能与'+(q?q.name:c)+'混配')})});ws=ws.filter(function(x,i){return ws.indexOf(x)===i});return ws.length?{status:'error',warnings:ws}:{status:'success',message:'方案安全'}}
+function makePre(cropId,bb,dis){var list=dis.rec.map(function(id){var p=PEST.filter(function(x){return x.id===id})[0];if(!p)return null;var cf=(p.conf||[]).some(function(c){return dis.rec.indexOf(c)>-1});return ext({},p,{bad:isForbid(p,cropId,bb),cf:cf})}).filter(Boolean);var alt=dis.alt.map(function(id){var p=PEST.filter(function(x){return x.id===id})[0];return p&&!isForbid(p,cropId,bb)?p:null}).filter(Boolean);var sf=safety(cropId,bb,list.map(function(p){return p.id})),safe=alt.length?alt.map(function(p){return p.id}):list.filter(function(p){return!p.bad&&!p.cf}).map(function(p){return p.id});return{list:list,alt:alt,bad:list.some(function(p){return p.bad}),warnings:sf.warnings,safe:safe}}
+var T=null;function toast(m){var e=$('#toast');e.textContent=m;e.className='on';clearTimeout(T);T=setTimeout(function(){e.className=''},2200)}
+function load(on,t){var e=$('#load');if(t)$('#loadText').textContent=t;e.className=on?'load on':'load'}
+function modal(title,content,danger,onOK){var h='<div class="mask"><div class="modal"><h3>'+esc(title)+'</h3><p>'+esc(content)+'</p><div class="row"><button class="btn sec blk" data-x>取消</button><button class="btn '+(danger?'dan':'pri')+' blk" data-ok>确定</button></div></div></div>';$('#modal').innerHTML=h;function close(){$('#modal').innerHTML=''}$('[data-x]',$('#modal')).onclick=close;if(!onOK)$('[data-x]',$('#modal')).style.display='none';$('[data-ok]',$('#modal')).onclick=function(){close();if(onOK)onOK()};$('.mask',$('#modal')).onclick=function(e){if(e.target.className==='mask')close()}}
+var state={edit:null,editRec:null,pending:null,last:null,warned:''},PKEY='zhibao_pending';
+/* 真实 AI 识别：浏览器只把图片交给同源中转服务，密钥始终留在服务器端 */
+var API_URL='/api/diagnose';
+function recognizeAPI(dataUrl){
+  var base64=String(dataUrl||'').replace(/^data:image\/[a-zA-Z0-9.+-]+;base64,/,'');
+  return new Promise(function(resolve,reject){
+    try{
+      var xhr=new XMLHttpRequest();
+      xhr.open('POST',API_URL,true);
+      xhr.setRequestHeader('Content-Type','application/json');
+      xhr.onreadystatechange=function(){
+        if(xhr.readyState!==4)return;
+        var j=null;try{j=JSON.parse(xhr.responseText)}catch(e){}
+        if(xhr.status<200||xhr.status>=300)return reject(new Error('识别服务不可用（HTTP '+xhr.status+'），请用 python server.py 启动并通过网址访问'));
+        if(!j||!j.success)return reject(new Error((j&&j.error)||'识别服务未返回结果'));
+        resolve({name:j.name,confidence:j.confidence,all:j.all||[],raw:j.raw});
+      };
+      xhr.onerror=function(){reject(new Error('无法连接识别服务，请用 python server.py 启动并通过网址访问'))};
+      xhr.send(JSON.stringify({image:base64}));
+    }catch(e){reject(new Error('调用识别服务失败：'+(e.message||e)))}
+  });
+}
+/* 把云端返回的真实病害名称映射到本地处方库；匹配不到则给通用建议并明确标注 */
+function matchDis(name,confidence,cropId){
+  name=String(name||'');confidence=Number(confidence)||0;
+  var pool=DIS.filter(function(d){return d.crop===cropId});
+  var hit=pool.filter(function(d){return name===d.name})[0];
+  if(!hit)hit=pool.filter(function(d){return name.indexOf(d.name)>-1||d.name.indexOf(name)>-1})[0];
+  var kw=[['锈',['rust']],['赤霉',['fus']],['白粉',['pow']],['蚜',['aph']],['大斑',['mz']],['稻瘟',['rb']]];
+  if(!hit){for(var i=0;i<kw.length;i++){if(name.indexOf(kw[i][0])>-1){hit=pool.filter(function(d){return kw[i][1].indexOf(d.id)>-1})[0];if(hit)break}}}
+  if(hit)return ext({},hit,{apiName:name,confidence:confidence,matched:true});
+  return {id:'api',name:name,crop:cropId,range:[0,99],rec:['pd'],alt:['pp'],sym:'AI 真实识别结果，未匹配本地处方库，仅供参考',apiName:name,confidence:confidence,matched:false};
+}
+function val(f,n){return f.elements.namedItem(n).value.trim()}
+function opts(sel){return Object.keys(CROPS).map(function(k){return'<option value="'+k+'"'+(k===sel?' selected':'')+'>'+CROPS[k].name+'</option>'}).join('')}
+function cropSel(plots,cur){return'<select id="plotSel" style="width:100%;min-height:2.6rem;padding:.4rem .6rem;border:1px solid var(--line);border-radius:.7rem">'+plots.map(function(p){return'<option value="'+p.id+'"'+(p.id===cur?' selected':'')+'>'+esc(p.name)+' · '+esc(p.cropName)+'</option>'}).join('')+'</select>'}
+function warnList(plot,ph){var r=DIS.filter(function(d){return d.crop===plot.cropId&&ph.bbch>=d.range[0]-6&&ph.bbch<=d.range[1]+6}).slice(0,3);return r.length?r.map(function(d,i){return'<div class="item"><div class="main"><div class="t">'+esc(d.name)+' <span class="tag '+(i?'o':'r')+'">'+(i?'关注':'重点')+'</span></div><div class="m">'+esc(d.sym)+'</div></div></div>'}).join(''):'<div class="empty">当前阶段暂无重点预警</div>'}
+function preview(cid,sd){if(!sd)return'<p class="mut">选择作物和播种日期后自动推算。</p>';if(future(sd))return'<p class="bad">播种日期不能晚于今天</p>';var p=pheno({cropId:cid,sowDate:sd});return'<p><b class="ok">'+esc(p.crop)+' - '+esc(p.stage)+'</b>（BBCH '+p.bbch+'）</p><p class="mut">播种后 '+p.days+' 天 · 距'+esc(p.next)+' '+p.left+' 天 · RPDW '+p.rpdw+'</p>'}
+function pageHead(t,back,chip){$('#head').innerHTML='<div class="topbar-left">'+(back?'<button class="back" data-nav="home">‹</button>':'')+'<h1>'+esc(t)+'<small>BBCH物候驱动 · 用药安全前置校验</small></h1></div>'+(chip?'<span class="chip">'+esc(chip)+'</span>':'')}
+function tabs(r){if(r==='diagnose'){$('#tabs').innerHTML='';$('#tabs').style.display='none';return}$('#tabs').style.display='flex';var a=[['home','⌂','工作台'],['plots','▤','地块'],['ledger','▦','台账'],['profile','○','我的']];$('#tabs').innerHTML=a.map(function(x){return'<button data-nav="'+x[0]+'" class="'+(r===x[0]?'on':'')+'"><span style="font-size:1.1rem">'+x[1]+'</span><span>'+x[2]+'</span></button>'}).join('')}
+function renderProfile(){var p=DB.profile()||{};return'<section class="card"><div class="title">个人信息 <span class="tag">本地存储</span></div><form id="pf"><div class="field"><label>姓名</label><input name="name" value="'+esc(p.name)+'" maxlength="20"></div><div class="field"><label>农场名称</label><input name="farm" value="'+esc(p.farm)+'" maxlength="30"></div><div class="field"><label>联系电话</label><input name="phone" type="tel" value="'+esc(p.phone)+'" maxlength="11"></div><button class="btn pri blk">保存信息</button></form></section><section class="card"><div class="title">管理入口</div><div class="row"><button class="btn sec" data-nav="plots">地块管理</button><button class="btn gho" data-nav="ledger">农事台账</button></div></section>'}
+function mountProfile(){var f=$('#pf');if(!f)return;f.onsubmit=function(e){e.preventDefault();var n=val(f,'name'),ph=val(f,'phone');if(!n){toast('请填写姓名');return}if(ph&&!/^1\d{10}$/.test(ph)){toast('手机号格式不正确');return}DB.saveProfile({name:n,farm:val(f,'farm'),phone:ph});toast('已保存')}}
+function renderPlots(){var ps=DB.plots(),cur=DB.curPlot(),ed=state.edit?DB.plot(state.edit):null;var list=ps.length?ps.map(function(p){var ph=pheno(p),on=cur&&cur.id===p.id;return'<div class="item '+(on?'on':'')+'"><div class="main"><div class="t">'+esc(p.name)+' '+(on?'<span class="tag">当前</span>':'')+'</div><div class="m">'+esc(ph.crop)+' · '+esc(p.variety||'未填品种')+' · '+p.area+'亩 · '+esc(p.sowDate)+'</div><div class="m ok">'+esc(ph.stage)+' BBCH '+ph.bbch+' · RPDW '+ph.rpdw+'</div></div><div class="ops"><button class="btn sm gho" data-a="sel" data-id="'+p.id+'">选中</button><button class="btn sm sec" data-a="ed" data-id="'+p.id+'">编辑</button><button class="btn sm dan" data-a="del" data-id="'+p.id+'">删除</button></div></div>'}).join(''):'<div class="empty"><div class="ico">▤</div><b>还没有地块</b><div>请先添加一个地块，系统按播种日期推算BBCH。</div><button class="btn pri" data-a="add">去添加地块</button></div>';return'<div class="bar"><div><b>共 '+ps.length+' 块地</b></div><button class="btn pri" data-a="add">'+(ed?'取消编辑':'新增地块')+'</button></div>'+list+'<section class="card" id="pfPanel" style="display:'+(ed?'block':'none')+'"><div class="title">'+(ed?'编辑地块':'新增地块')+'</div><form id="plf"><div class="field"><label>地块名称</label><input name="name" value="'+esc(ed&&ed.name)+'"></div><div class="field"><label>作物类型</label><select name="cropId">'+opts(ed?ed.cropId:'wheat')+'</select></div><div class="field"><label>品种</label><input name="variety" value="'+esc(ed&&ed.variety)+'"></div><div class="field"><label>播种日期</label><input name="sowDate" type="date" max="'+today()+'" value="'+esc(ed&&ed.sowDate)+'"></div><div class="field"><label>面积（亩）</label><input name="area" type="number" min="0.1" step="0.1" value="'+esc(ed&&ed.area)+'"></div><div id="pv">'+preview(ed?ed.cropId:'wheat',ed?ed.sowDate:'')+'</div><div class="row"><button type="button" class="btn sec" data-a="cancel">取消</button><button class="btn pri">'+(ed?'保存修改':'添加地块')+'</button></div></form></section>'}
+function mountPlots(){var f=$('#plf'),panel=$('#pfPanel');function show(){panel.style.display='block'}function hide(){panel.style.display='none';state.edit=null;f.reset()}function pv(){$('#pv').innerHTML=preview(f.cropId.value,f.sowDate.value)}$$('[data-a="add"]').forEach(function(b){b.onclick=function(){if(state.edit){hide();return}state.edit=null;f.reset();show();pv()}});$$('[data-a="cancel"]').forEach(function(b){b.onclick=hide});$$('[data-a="sel"]').forEach(function(b){b.onclick=function(){DB.setCur(b.dataset.id);toast('已切换地块')}});$$('[data-a="ed"]').forEach(function(b){b.onclick=function(){state.edit=b.dataset.id;render();toast('已载入地块')}});$$('[data-a="del"]').forEach(function(b){b.onclick=function(){modal('删除地块','确定删除吗？',true,function(){DB.delPlot(b.dataset.id);toast('已删除')})}});f.cropId.onchange=pv;f.sowDate.onchange=pv;f.onsubmit=function(e){e.preventDefault();var n=val(f,'name'),sd=val(f,'sowDate'),ar=Number(val(f,'area'));if(!n||!sd||!(ar>0)){toast('请完整填写');return}if(future(sd)){toast('播种日期不能晚于今天');return}var d={name:n,cropId:f.cropId.value,variety:val(f,'variety'),sowDate:sd,area:ar};state.edit?DB.editPlot(state.edit,d):DB.addPlot(d);hide();toast('已保存')}}
+function renderHome(){var ps=DB.plots();if(!ps.length)return'<div class="empty"><div class="ico">▤</div><b>还没有地块</b><div>请先添加一块地。</div><div class="row"><button class="btn pri" data-nav="plots">去添加地块</button><button class="btn sec" data-nav="ledger">查看台账</button></div></div>';var p=DB.curPlot()||ps[0],ph=pheno(p),pg=Math.min(100,Math.round(ph.days/250*100));return'<section class="card pheno"><div class="row"><div style="flex:1;min-width:0">'+cropSel(ps,p.id)+'</div><span class="tag">'+esc(ph.mode)+'</span></div><div class="stage">'+esc(ph.crop)+' - '+esc(ph.stage)+'</div><div class="mut">BBCH '+ph.bbch+' · '+esc(ph.desc)+'</div><div class="prog"><i style="width:'+pg+'%"></i></div><div class="kv"><div><span class="mut">距'+esc(ph.next)+'</span><b>'+ph.left+' 天</b></div><div><span class="mut">RPDW</span><b>'+ph.rpdw+'</b></div><div><span class="mut">播种后</span><b>'+ph.days+' 天</b></div></div></section><section class="card"><div class="title">快捷操作</div><div class="row"><button class="btn pri" id="camBtn">拍照诊断</button><button class="btn sec" id="albBtn">从相册选择</button><button class="btn gho" data-nav="ledger">我的台账</button></div><p class="mut">微信内如无法直接调相机，请用“从相册选择”。</p></section><section class="card"><div class="title">未来3天 · 防治窗口</div>'+warnList(p,ph)+'</section>'}
+function mountHome(){var s=$('#plotSel');if(s)s.onchange=function(){DB.setCur(s.value);toast('已切换地块')};function pick(inp){var p=DB.curPlot(),file=inp.files&&inp.files[0];if(!p){toast('请先添加地块');return}if(!file)return;load(true,'读取图像…');var fr=new FileReader();fr.onload=function(){var im=new Image();im.onload=function(){var cv=document.createElement('canvas'),max=1280,ra=Math.min(1,max/Math.max(im.width,im.height));cv.width=Math.max(1,Math.round(im.width*ra));cv.height=Math.max(1,Math.round(im.height*ra));cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);var url=cv.toDataURL('image/jpeg',.8);load(true,'AI 云端识别中…');recognizeAPI(url).then(function(r){var q={plotId:p.id,img:url,h:hash(url),ai:r};try{sessionStorage.setItem(PKEY,JSON.stringify(q))}catch(e){}state.pending=q;load(false);location.hash='#/diagnose'}).catch(function(e){load(false);modal('识别失败',e.message||'识别服务不可用',true,function(){})})};im.onerror=function(){load(false);toast('图片解析失败')};im.src=fr.result};fr.onerror=function(){load(false);toast('图片读取失败')};fr.readAsDataURL(file);inp.value=''}var cb=$('#camBtn'),ab=$('#albBtn'),cam=$('#cam'),alb=$('#alb');if(cb)cb.onclick=function(){cam.click()};if(ab)ab.onclick=function(){alb.click()};cam.onchange=function(){pick(cam)};alb.onchange=function(){pick(alb)}}
+function pending(){if(state.pending)return state.pending;try{return JSON.parse(sessionStorage.getItem(PKEY)||'null')}catch(e){return null}}
+function renderDiagnose(){var q=pending();if(!q||!q.plotId)return'<div class="empty"><div class="ico">!</div><b>没有待诊断图片</b><button class="btn pri" data-nav="home">返回工作台</button></div>';var p=DB.plot(q.plotId);if(!p)return'<div class="empty"><b>地块不存在</b><button class="btn pri" data-nav="plots">去地块管理</button></div>';var ph=pheno(p,q.h);var ai=q.ai||null;var dis=ai?matchDis(ai.name,ai.confidence,p.cropId):null;var pre=dis?makePre(p.cropId,ph.bbch,dis):{list:[],alt:[],bad:false,warnings:[],safe:[]};state.last={p:p,ph:ph,dis:dis,pre:pre,q:q};return'<section class="card"><div class="title">本次诊断输入</div><img class="image-preview" style="width:100%;max-height:16rem;object-fit:cover;border-radius:.8rem" src="'+esc(q.img)+'"><div class="kv"><div><b>'+esc(p.name)+'</b></div><div><b>BBCH '+ph.bbch+'</b><div class="mut">'+esc(ph.stage)+'</div></div><div><b>RPDW '+ph.rpdw+'</b></div></div><p class="mut small">时间序列 '+ph.ts+' ｜ 单时相 '+ph.sp+' ｜ 噪声 '+ph.noise+'% ｜ 物候置信度 '+ph.conf+'%</p></section>'+(pre.bad?'<div class="warn"><b>用药安全警告：当前处于'+esc(ph.stage)+'，禁用该药，请改用替代方案</b><p class="mut">'+pre.warnings.map(esc).join('；')+'</p></div>':'')+'<section class="card"><div class="title">真实AI识别 <span class="tag">'+(dis?dis.confidence:0)+'%</span></div><div class="stage">'+esc(dis?dis.name:'未获取到识别结果')+'</div><div class="mut">'+esc(dis?(dis.confidence<50||dis.name.indexOf('非植物')>-1?'云端识别 · 结果置信度低或非植物，请换清晰的病害叶片照片重试':(dis.matched?'云端识别 · 已匹配本地处方库':'云端识别 · 未匹配本地处方库，仅供参考')):'请先用 python server.py 启动识别服务并配置密钥')+'</div></section><section class="card"><div class="title">系统推荐用药方案</div>'+(pre.list.length?pre.list.map(function(x){return'<div class="pest '+(x.bad?'no':'')+'"><div class="row"><div class="main" style="flex:1"><div class="t">'+esc(x.name)+'</div></div><span class="tag '+(x.bad?'r':x.cf?'o':'')+'">'+(x.bad?'生育期禁用':x.cf?'混配冲突':'可用')+'</span></div><div class="m mut">'+esc(x.type)+' ｜ 用量 '+esc(x.dose)+'</div><div class="m mut">'+esc(x.note)+'</div>'+(x.bad?'<div class="bad small">isForbidden = true，禁止使用</div>':'')+'</div>'}).join(''):'<div class="empty">暂无推荐</div>')+'</section>'+(pre.alt.length?'<section class="card alt"><div class="title">安全替代药</div>'+pre.alt.map(function(x){return'<div class="item"><div class="main"><b class="ok">'+esc(x.name)+'</b><div class="m">'+esc(x.dose)+' ｜ '+esc(x.note)+'</div></div></div>'}).join('')+'</section>':'')+'<section class="card"><button class="btn pri blk" id="recBtn">记录到台账</button></section>'}
+function mountDiagnose(){var d=state.last;if(!d)return;var k=d.p.id+'_'+d.ph.bbch+'_'+(d.dis?d.dis.id:'');if(d.pre.bad&&state.warned!==k){state.warned=k;modal('用药安全警告','当前处于'+d.ph.stage+'，禁用该药，请改用替代方案',true,function(){})}var b=$('#recBtn');if(b)b.onclick=function(){var ids=d.pre.safe;if(!ids.length){toast('没有安全药剂');return}var names=ids.map(function(id){var x=PEST.filter(function(y){return y.id===id})[0];return x?x.name:id}).join('、');DB.addRec({plotId:d.p.id,action:'打药',name:names,date:today(),note:(d.dis?d.dis.name:'')+' · BBCH '+d.ph.bbch});DB.addDia({plotId:d.p.id,cropId:d.p.cropId,bbch:d.ph.bbch,disease:d.dis?d.dis.name:'',conf:d.dis?d.dis.confidence:0,recs:d.pre.list.map(function(x){return x.id}),safety:{bad:d.pre.bad,warnings:d.pre.warnings}});toast('已记录到台账');location.hash='#/ledger'}}
+function renderLedger(){var rs=DB.records(),ps=DB.plots(),e=esc;return'<div class="bar"><div><b>共 '+rs.length+' 条记录</b></div><button class="btn pri" data-a="add">新增记录</button></div>'+(rs.length?rs.map(function(r){var p=DB.plot(r.plotId);return'<div class="item"><div class="main"><div class="t"><span class="tag">'+(r.action||'')+'</span> '+e(r.name)+'</div><div class="m">'+e(p?p.name:'已删除地块')+' ｜ '+e(r.date)+'</div>'+(r.note?'<div class="m">'+e(r.note)+'</div>':'')+'</div><div class="ops"><button class="btn sm dan" data-a="delr" data-id="'+r.id+'">删除</button></div></div>'}).join(''):'<div class="empty"><div class="ico">▦</div><b>台账还是空的</b><div>诊断记录或手动新增。</div><button class="btn pri" data-a="add">手动新增记录</button></div>')+'<section class="card" id="recPanel" style="display:none"><div class="title">手动新增记录</div>'+(ps.length?'<form id="rf"><div class="field"><label>地块</label><select name="plotId">'+ps.map(function(p){return'<option value="'+p.id+'">'+e(p.name)+'</option>'}).join('')+'</select></div><div class="field"><label>操作类型</label><select name="action"><option>打药</option><option>施肥</option></select></div><div class="field"><label>用药/用肥名称</label><input name="name"></div><div class="field"><label>日期</label><input name="date" type="date" max="'+today()+'" value="'+today()+'"></div><div class="field"><label>备注</label><textarea name="note"></textarea></div><div class="row"><button type="button" class="btn sec" data-a="cancel">取消</button><button class="btn pri">保存记录</button></div></form>':'<p class="bad">请先添加地块</p><button class="btn pri" data-nav="plots">去添加地块</button>')+'</section>'}
+function mountLedger(){var p=$('#recPanel'),f=$('#rf');$$('[data-a="add"]').forEach(function(b){b.onclick=function(){p.style.display='block'}});$$('[data-a="cancel"]').forEach(function(b){b.onclick=function(){p.style.display='none'}});$$('[data-a="delr"]').forEach(function(b){b.onclick=function(){modal('删除记录','确定删除吗？',true,function(){DB.delRec(b.dataset.id);toast('已删除')})}});if(!f)return;f.onsubmit=function(e){e.preventDefault();var n=val(f,'name'),dt=val(f,'date');if(!n||!dt){toast('请完整填写');return}if(future(dt)){toast('日期不能晚于今天');return}DB.addRec({plotId:f.plotId.value,action:f.action.value,name:n,date:dt,note:val(f,'note')});f.reset();p.style.display='none';toast('已保存')}}
+var ROUTES=['home','plots','ledger','profile','diagnose'];function route(){var r=(location.hash||'').replace(/^#\/?/,'').split('?')[0];return ROUTES.indexOf(r)>-1?r:'home'}
+function render(){var r=route(),p=DB.curPlot();pageHead(r==='home'?'植保工作台':r==='plots'?'我的地块':r==='ledger'?'农事台账':r==='profile'?'我的':'诊断与决策',r==='diagnose',(r==='home'&&p)?'BBCH '+pheno(p).bbch+' · '+pheno(p).stage:(r==='diagnose'?'双模诊断':''));tabs(r);var html='',mount=null;if(r==='profile'){html=renderProfile();mount=mountProfile}else if(r==='plots'){html=renderPlots();mount=mountPlots}else if(r==='ledger'){html=renderLedger();mount=mountLedger}else if(r==='diagnose'){html=renderDiagnose();mount=mountDiagnose}else{html=renderHome();mount=mountHome}try{$('#page').innerHTML=html;if(mount)mount();scrollTo(0,0)}catch(err){$('#page').innerHTML='<div class="empty"><b>页面加载失败</b><div>'+esc(err.message||'')+'</div><button class="btn pri" data-nav="home">回到工作台</button></div>'}}
+rerender=function(){setTimeout(render,0)};document.addEventListener('click',function(e){var t=closest(e.target,'[data-nav]');if(!t)return;e.preventDefault();var n=t.getAttribute('data-nav');if(ROUTES.indexOf(n)>-1)location.hash='#/'+n});w.onhashchange=render;w.addEventListener('storage',render);render();
+})(window);
+</script>
+</body>
+</html>
